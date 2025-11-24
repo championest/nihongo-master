@@ -50,6 +50,8 @@ const app = {
         flashcardQueue: [],
         currentFlashcard: null,
         score: 0,
+        history: [],
+        rememberedCards: [],
         quizScore: 0,
         quizTotal: 0,
         currentQuizItem: null
@@ -184,7 +186,9 @@ const app = {
             this.playSound(this.state.currentFlashcard.char);
         });
 
-        undoBtn.addEventListener('click', () => this.undoLastAction());
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => this.undoLastAction());
+        }
     },
 
     resetFlashcardSetup() {
