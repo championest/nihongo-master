@@ -963,10 +963,10 @@ h1 {
 }
 
 .mini-card.pending {
-    background: rgba(255, 255, 255, 0.5);
-    color: #ccc;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.8);
+    color: #888;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-size: 0.9rem;
 }
 
 .mini-card.done {

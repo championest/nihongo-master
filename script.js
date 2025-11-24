@@ -366,7 +366,7 @@ const app = {
         for (let i = 0; i < showCountLeft; i++) {
             const div = document.createElement('div');
             div.className = 'mini-card pending';
-            div.textContent = '?';
+            div.textContent = this.state.flashcardQueue[i].char;
             leftContainer.appendChild(div);
         }
 
