@@ -358,14 +358,12 @@ const app = {
         const leftContainer = document.getElementById('stack-left-content');
         leftContainer.innerHTML = '';
 
-        // Render pending cards (limit to top 20 to prevent DOM overload if too many)
-        // We want to show them stacked. 
-        // Since it's a queue, we can just show generic backs.
-        const showCountLeft = Math.min(leftCount, 30);
+        // Render pending chips (limit to 50)
+        const showCountLeft = Math.min(leftCount, 50);
         for (let i = 0; i < showCountLeft; i++) {
             const div = document.createElement('div');
             div.className = 'mini-card pending';
-            div.textContent = '?'; // Or empty
+            div.textContent = '?';
             leftContainer.appendChild(div);
         }
 
@@ -376,19 +374,8 @@ const app = {
         const rightContainer = document.getElementById('stack-right-content');
         rightContainer.innerHTML = '';
 
-        // Show remembered cards (most recent at top? or bottom? Stack usually adds to top)
-        // Let's show all of them, or limit if too many.
-        // We want the most recently added to be visible at the "top" of the visual stack.
-        // In Flex column, first child is top.
-        // If we append, it goes to bottom.
-        // Let's prepend to make it look like a stack growing up? 
-        // Actually CSS is flex-direction: column. 
-        // If we want "pile", maybe just append.
-
-        // Let's reverse the array for display so the latest is first (top)
-        const displayRight = [...this.state.rememberedCards].reverse().slice(0, 30);
-
-        displayRight.forEach(item => {
+        // Show remembered cards in order
+        this.state.rememberedCards.forEach(item => {
             const div = document.createElement('div');
             div.className = 'mini-card done';
             div.textContent = item.char;

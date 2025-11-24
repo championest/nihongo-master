@@ -923,14 +923,14 @@ h1 {
     width: 100%;
     flex-grow: 1;
     overflow-y: auto;
-    /* Scrollable */
     display: flex;
-    flex-direction: column;
-    /* Stack vertically */
-    gap: -25px;
-    /* Overlap effect */
-    align-items: center;
-    padding-bottom: 10px;
+    flex-wrap: wrap;
+    /* Wrap items like a collection */
+    gap: 4px;
+    /* Small gap between items */
+    align-content: flex-start;
+    justify-content: center;
+    padding: 5px;
 }
 
 /* Hide scrollbar for cleaner look */
@@ -944,45 +944,41 @@ h1 {
 }
 
 .mini-card {
-    width: 50px;
-    height: 50px;
+    width: 28px;
+    height: 28px;
     background: white;
-    border-radius: 8px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-family: var(--font-jp);
     font-weight: bold;
     color: var(--text-main);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     border: 1px solid #eee;
     flex-shrink: 0;
-    transition: all 0.3s;
     user-select: none;
+    cursor: default;
 }
 
 .mini-card.pending {
-    background: #e0e0e0;
-    color: transparent;
-    border: 2px solid white;
+    background: rgba(255, 255, 255, 0.5);
+    color: #ccc;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.8rem;
 }
 
 .mini-card.done {
     background: white;
     border-color: var(--secondary-color);
     color: var(--secondary-color);
+    font-weight: bold;
 }
 
-/* Stack overlap adjustment */
+/* Remove the hover effect and overlap for cleaner text-like look */
 .stack-content .mini-card:not(:first-child) {
-    margin-top: -35px;
-    /* Negative margin for overlap pile look */
-}
-
-.stack-content .mini-card:hover {
-    transform: translateY(-5px);
-    z-index: 5;
+    margin-top: 0;
 }
 
 .audio-btn-floating {
