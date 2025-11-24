@@ -152,7 +152,6 @@ const app = {
     // Flashcard Logic
     setupFlashcard() {
         // Setup Screen Events
-        // Setup Screen Events
         document.getElementById('fc-select-all').addEventListener('click', () => this.toggleSelection(true));
         document.getElementById('fc-clear-all').addEventListener('click', () => this.toggleSelection(false));
         document.getElementById('fc-start-btn').addEventListener('click', () => this.startFlashcardSession());
@@ -164,31 +163,28 @@ const app = {
         const ratingBtns = document.getElementById('rating-btns');
         const flashcard = document.getElementById('flashcard');
         const audioBtn = document.getElementById('fc-audio-btn');
+        const undoBtn = document.getElementById('fc-undo-btn');
 
         showBtn.addEventListener('click', () => {
             flashcard.classList.add('flipped');
             showBtn.classList.add('hidden');
             ratingBtns.classList.remove('hidden');
-
-            // Auto play sound on reveal (optional, maybe distracting)
-            // this.playSound(this.state.currentFlashcard.char);
         });
 
         document.getElementById('fc-correct').addEventListener('click', () => {
-            this.state.score++;
-            this.nextFlashcard();
+            this.processCardResult('correct');
         });
 
         document.getElementById('fc-wrong').addEventListener('click', () => {
-            // Re-queue the card to practice again later? For now just next.
-            this.state.flashcardQueue.push(this.state.currentFlashcard); // Add back to end of queue
-            this.nextFlashcard();
+            this.processCardResult('wrong');
         });
 
         audioBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card flip if clicking audio
             this.playSound(this.state.currentFlashcard.char);
         });
+
+        undoBtn.addEventListener('click', () => this.undoLastAction());
     },
 
     resetFlashcardSetup() {
@@ -205,7 +201,8 @@ const app = {
         const grid = document.getElementById('fc-selection-grid');
         grid.innerHTML = data.map((item, index) => `
             <div class="select-item selected" data-index="${index}">
-                ${item.char}
+                <span class="select-char">${item.char}</span>
+                <span class="select-romaji">${item.romaji}</span>
             </div>
         `).join('');
     },
@@ -240,24 +237,69 @@ const app = {
         this.state.flashcardQueue.sort(() => Math.random() - 0.5);
 
         this.state.score = 0;
+        this.state.history = []; // Stack for undo
+        this.state.rememberedCards = []; // Right stack
 
         // Switch View
         document.getElementById('flashcard-setup').classList.add('hidden');
         document.getElementById('flashcard-play').classList.remove('hidden');
 
+        this.updateStacks();
         this.nextFlashcard();
     },
 
+    processCardResult(result) {
+        const currentCard = this.state.currentFlashcard;
+
+        // Save history
+        this.state.history.push({
+            card: currentCard,
+            result: result
+        });
+
+        if (result === 'correct') {
+            this.state.score++;
+            this.state.rememberedCards.push(currentCard);
+        } else {
+            // Re-queue the card
+            this.state.flashcardQueue.push(currentCard);
+        }
+
+        this.nextFlashcard();
+    },
+
+    undoLastAction() {
+        if (this.state.history.length === 0) return;
+
+        const lastAction = this.state.history.pop();
+        const { card, result } = lastAction;
+
+        // Put the currently displayed card back to the FRONT of the queue (so we see it again later)
+        // BUT wait, if we undo, we want to see the PREVIOUS card immediately.
+        // So the *current* card (which we haven't answered yet) should go back to the HEAD of the queue.
+        if (this.state.currentFlashcard) {
+            this.state.flashcardQueue.unshift(this.state.currentFlashcard);
+        }
+
+        // Restore the previous card as current
+        this.state.currentFlashcard = card;
+
+        // Reverse the effects of the action
+        if (result === 'correct') {
+            this.state.score--;
+            this.state.rememberedCards.pop();
+        } else {
+            // It was wrong, so it was pushed to the end of queue. Remove it from there.
+            // Note: If we shuffled, this might be tricky, but here we just pushed to end.
+            // However, if we undo immediately, it's at the end.
+            this.state.flashcardQueue.pop();
+        }
+
+        this.renderCurrentFlashcard();
+        this.updateStacks();
+    },
+
     nextFlashcard() {
-        // Reset UI
-        const flashcard = document.getElementById('flashcard');
-        const showBtn = document.getElementById('show-answer-btn');
-        const ratingBtns = document.getElementById('rating-btns');
-
-        flashcard.classList.remove('flipped');
-        showBtn.classList.remove('hidden');
-        ratingBtns.classList.add('hidden');
-
         // Check if queue empty
         if (this.state.flashcardQueue.length === 0) {
             alert(`จบการฝึกฝน! คะแนนของคุณ: ${this.state.score}`);
@@ -265,29 +307,66 @@ const app = {
             return;
         }
 
+        const item = this.state.flashcardQueue.shift(); // Get first item
+        this.state.currentFlashcard = item;
+
+        this.renderCurrentFlashcard();
+        this.updateStacks();
+    },
+
+    renderCurrentFlashcard() {
+        // Reset UI
+        const flashcard = document.getElementById('flashcard');
+        const showBtn = document.getElementById('show-answer-btn');
+        const ratingBtns = document.getElementById('rating-btns');
+        const item = this.state.currentFlashcard;
+
+        flashcard.classList.remove('flipped');
+        showBtn.classList.remove('hidden');
+        ratingBtns.classList.add('hidden');
+
         // Update Stats
         document.getElementById('fc-score').textContent = this.state.score;
-        document.getElementById('fc-remaining').textContent = this.state.flashcardQueue.length;
 
-        // Load Next Card
-        // Wait for flip back animation if needed, but here we just update content
-        setTimeout(() => {
-            const item = this.state.flashcardQueue.shift(); // Get first item
-            this.state.currentFlashcard = item;
+        // Update Undo Button State
+        document.getElementById('fc-undo-btn').disabled = this.state.history.length === 0;
 
-            document.querySelector('.fc-char').textContent = item.char;
+        // Update Content
+        document.querySelector('.fc-char').textContent = item.char;
 
-            const romajiEl = document.querySelector('.fc-romaji');
-            const typeEl = document.querySelector('.fc-type');
+        const romajiEl = document.querySelector('.fc-romaji');
+        const typeEl = document.querySelector('.fc-type');
 
-            if (item.meaning) {
-                romajiEl.textContent = item.meaning;
-                typeEl.textContent = `Reading: ${item.romaji}`;
-            } else {
-                romajiEl.textContent = item.romaji;
-                typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
-            }
-        }, 300);
+        if (item.meaning) {
+            romajiEl.textContent = item.meaning;
+            typeEl.textContent = `Reading: ${item.romaji}`;
+        } else {
+            romajiEl.textContent = item.romaji;
+            typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
+        }
+    },
+
+    updateStacks() {
+        // Left Stack (Queue + Current is out) -> Actually Queue is what's left
+        const leftCount = this.state.flashcardQueue.length;
+        const rightCount = this.state.rememberedCards.length;
+
+        document.getElementById('stack-left-count').textContent = leftCount;
+        document.getElementById('stack-right-count').textContent = rightCount;
+
+        // Visual Height (cap at 100% for ~20 cards)
+        const leftHeight = Math.min(leftCount * 5, 100);
+        const rightHeight = Math.min(rightCount * 5, 100);
+
+        const leftVisual = document.getElementById('stack-left-visual');
+        const rightVisual = document.getElementById('stack-right-visual');
+
+        leftVisual.style.height = `${leftHeight}%`;
+        rightVisual.style.height = `${rightHeight}%`;
+
+        // Toggle classes for styling
+        document.querySelector('.stack-left').classList.toggle('has-cards', leftCount > 0);
+        document.querySelector('.stack-right').classList.toggle('has-cards', rightCount > 0);
     },
 
     // Quiz Logic
