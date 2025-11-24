@@ -351,26 +351,49 @@ const app = {
     },
 
     updateStacks() {
-        // Left Stack (Queue + Current is out) -> Actually Queue is what's left
+        // Left Stack (Queue)
         const leftCount = this.state.flashcardQueue.length;
-        const rightCount = this.state.rememberedCards.length;
-
         document.getElementById('stack-left-count').textContent = leftCount;
+
+        const leftContainer = document.getElementById('stack-left-content');
+        leftContainer.innerHTML = '';
+
+        // Render pending cards (limit to top 20 to prevent DOM overload if too many)
+        // We want to show them stacked. 
+        // Since it's a queue, we can just show generic backs.
+        const showCountLeft = Math.min(leftCount, 30);
+        for (let i = 0; i < showCountLeft; i++) {
+            const div = document.createElement('div');
+            div.className = 'mini-card pending';
+            div.textContent = '?'; // Or empty
+            leftContainer.appendChild(div);
+        }
+
+        // Right Stack (Remembered)
+        const rightCount = this.state.rememberedCards.length;
         document.getElementById('stack-right-count').textContent = rightCount;
 
-        // Visual Height (cap at 100% for ~20 cards)
-        const leftHeight = Math.min(leftCount * 5, 100);
-        const rightHeight = Math.min(rightCount * 5, 100);
+        const rightContainer = document.getElementById('stack-right-content');
+        rightContainer.innerHTML = '';
 
-        const leftVisual = document.getElementById('stack-left-visual');
-        const rightVisual = document.getElementById('stack-right-visual');
+        // Show remembered cards (most recent at top? or bottom? Stack usually adds to top)
+        // Let's show all of them, or limit if too many.
+        // We want the most recently added to be visible at the "top" of the visual stack.
+        // In Flex column, first child is top.
+        // If we append, it goes to bottom.
+        // Let's prepend to make it look like a stack growing up? 
+        // Actually CSS is flex-direction: column. 
+        // If we want "pile", maybe just append.
 
-        leftVisual.style.height = `${leftHeight}%`;
-        rightVisual.style.height = `${rightHeight}%`;
+        // Let's reverse the array for display so the latest is first (top)
+        const displayRight = [...this.state.rememberedCards].reverse().slice(0, 30);
 
-        // Toggle classes for styling
-        document.querySelector('.stack-left').classList.toggle('has-cards', leftCount > 0);
-        document.querySelector('.stack-right').classList.toggle('has-cards', rightCount > 0);
+        displayRight.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'mini-card done';
+            div.textContent = item.char;
+            rightContainer.appendChild(div);
+        });
     },
 
     // Quiz Logic
