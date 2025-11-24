@@ -117,4 +117,240 @@ const app = {
             'katakana': 'ตารางคาตาคานะ (Katakana)',
             'kanji': 'คันจิพื้นฐาน N5 (Kanji)'
         };
-        document.queryS
+        document.querySelector('#learn-view h2').textContent = titleMap[this.state.currentCategory];
+
+        // Hide tabs for Kanji
+        const tabs = document.querySelector('.module-tabs');
+        if (this.state.currentCategory === 'kanji') {
+            tabs.style.display = 'none';
+        } else {
+            tabs.style.display = 'flex';
+        }
+    },
+
+    renderGrid() {
+        const data = this.getData(this.state.currentCategory);
+        const grid = document.getElementById('kana-grid');
+
+        grid.innerHTML = data.map(item => {
+            // For Kanji, show meaning instead of just romaji if available
+            const subText = item.meaning ? item.meaning : item.romaji;
+
+            return `
+            <div class="kana-box glass">
+                <div class="kana-char">${item.char}</div>
+                <div class="kana-romaji" style="font-size: ${item.meaning ? '0.8rem' : '0.9rem'}">${subText}</div>
+                <div class="kana-actions">
+                    <button class="icon-btn" onclick="app.playSound('${item.char}')"><i class="fa-solid fa-volume-high"></i></button>
+                    <button class="icon-btn"><i class="fa-solid fa-pencil"></i></button>
+                </div>
+            </div>
+            `;
+        }).join('');
+    },
+
+    // Flashcard Logic
+    setupFlashcard() {
+        // Setup Screen Events
+        // Setup Screen Events
+        document.getElementById('fc-select-all').addEventListener('click', () => this.toggleSelection(true));
+        document.getElementById('fc-clear-all').addEventListener('click', () => this.toggleSelection(false));
+        document.getElementById('fc-start-btn').addEventListener('click', () => this.startFlashcardSession());
+        document.getElementById('fc-quit-btn').addEventListener('click', () => this.resetFlashcardSetup());
+        document.getElementById('fc-selection-grid').addEventListener('click', (e) => this.handleSelectionClick(e));
+
+        // Play Screen Events
+        const showBtn = document.getElementById('show-answer-btn');
+        const ratingBtns = document.getElementById('rating-btns');
+        const flashcard = document.getElementById('flashcard');
+        const audioBtn = document.getElementById('fc-audio-btn');
+
+        showBtn.addEventListener('click', () => {
+            flashcard.classList.add('flipped');
+            showBtn.classList.add('hidden');
+            ratingBtns.classList.remove('hidden');
+
+            // Auto play sound on reveal (optional, maybe distracting)
+            // this.playSound(this.state.currentFlashcard.char);
+        });
+
+        document.getElementById('fc-correct').addEventListener('click', () => {
+            this.state.score++;
+            this.nextFlashcard();
+        });
+
+        document.getElementById('fc-wrong').addEventListener('click', () => {
+            // Re-queue the card to practice again later? For now just next.
+            this.state.flashcardQueue.push(this.state.currentFlashcard); // Add back to end of queue
+            this.nextFlashcard();
+        });
+
+        audioBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card flip if clicking audio
+            this.playSound(this.state.currentFlashcard.char);
+        });
+    },
+
+    resetFlashcardSetup() {
+        // Show Setup, Hide Play
+        document.getElementById('flashcard-setup').classList.remove('hidden');
+        document.getElementById('flashcard-play').classList.add('hidden');
+
+        // Update Badge
+        const badge = document.getElementById('fc-category-badge');
+        if (badge) badge.textContent = this.state.currentCategory.toUpperCase();
+
+        // Render Selection Grid
+        const data = this.getData(this.state.currentCategory);
+        const grid = document.getElementById('fc-selection-grid');
+        grid.innerHTML = data.map((item, index) => `
+            <div class="select-item selected" data-index="${index}">
+                ${item.char}
+            </div>
+        `).join('');
+    },
+
+    toggleSelection(selectAll) {
+        document.querySelectorAll('.select-item').forEach(el => {
+            if (selectAll) el.classList.add('selected');
+            else el.classList.remove('selected');
+        });
+    },
+
+    handleSelectionClick(e) {
+        const item = e.target.closest('.select-item');
+        if (item) {
+            item.classList.toggle('selected');
+        }
+    },
+
+    startFlashcardSession() {
+        const selectedIndices = Array.from(document.querySelectorAll('.select-item.selected'))
+            .map(el => parseInt(el.dataset.index));
+
+        if (selectedIndices.length === 0) {
+            alert('กรุณาเลือกตัวอักษรอย่างน้อย 1 ตัว');
+            return;
+        }
+
+        const data = this.getData(this.state.currentCategory);
+        // Create queue from selected items
+        this.state.flashcardQueue = selectedIndices.map(i => data[i]);
+        // Shuffle queue
+        this.state.flashcardQueue.sort(() => Math.random() - 0.5);
+
+        this.state.score = 0;
+
+        // Switch View
+        document.getElementById('flashcard-setup').classList.add('hidden');
+        document.getElementById('flashcard-play').classList.remove('hidden');
+
+        this.nextFlashcard();
+    },
+
+    nextFlashcard() {
+        // Reset UI
+        const flashcard = document.getElementById('flashcard');
+        const showBtn = document.getElementById('show-answer-btn');
+        const ratingBtns = document.getElementById('rating-btns');
+
+        flashcard.classList.remove('flipped');
+        showBtn.classList.remove('hidden');
+        ratingBtns.classList.add('hidden');
+
+        // Check if queue empty
+        if (this.state.flashcardQueue.length === 0) {
+            alert(`จบการฝึกฝน! คะแนนของคุณ: ${this.state.score}`);
+            this.resetFlashcardSetup();
+            return;
+        }
+
+        // Update Stats
+        document.getElementById('fc-score').textContent = this.state.score;
+        document.getElementById('fc-remaining').textContent = this.state.flashcardQueue.length;
+
+        // Load Next Card
+        // Wait for flip back animation if needed, but here we just update content
+        setTimeout(() => {
+            const item = this.state.flashcardQueue.shift(); // Get first item
+            this.state.currentFlashcard = item;
+
+            document.querySelector('.fc-char').textContent = item.char;
+
+            const romajiEl = document.querySelector('.fc-romaji');
+            const typeEl = document.querySelector('.fc-type');
+
+            if (item.meaning) {
+                romajiEl.textContent = item.meaning;
+                typeEl.textContent = `Reading: ${item.romaji}`;
+            } else {
+                romajiEl.textContent = item.romaji;
+                typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
+            }
+        }, 300);
+    },
+
+    // Quiz Logic
+    setupQuiz() {
+        const input = document.querySelector('.quiz-content input');
+        const submitBtn = document.querySelector('.quiz-content .btn-primary');
+
+        const checkAnswer = () => {
+            const val = input.value.trim().toLowerCase();
+            const correctAnswers = this.state.currentQuizItem.romaji.split('/').map(s => s.trim().toLowerCase());
+
+            // Check if input matches any of the correct answers (useful for Kanji with multiple readings)
+            const isCorrect = correctAnswers.some(ans => val === ans);
+
+            if (isCorrect) {
+                alert('ถูกต้อง! (Correct)');
+                this.state.quizScore++;
+                this.playSound(this.state.currentQuizItem.char);
+            } else {
+                alert(`ผิด! คำตอบคือ ${this.state.currentQuizItem.romaji}`);
+            }
+            this.state.quizTotal++;
+            this.updateScore();
+            input.value = '';
+            this.loadNextQuizQuestion();
+        };
+
+        submitBtn.addEventListener('click', checkAnswer);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
+        });
+    },
+
+    loadNextQuizQuestion() {
+        const data = this.getData(this.state.currentCategory);
+        const item = data[Math.floor(Math.random() * data.length)];
+        this.state.currentQuizItem = item;
+        document.querySelector('.question-char').textContent = item.char;
+
+        // Update Quiz Header
+        document.querySelector('.quiz-header h2').textContent = `แบบทดสอบ: ${this.state.currentCategory === 'kanji' ? 'อ่านคันจิ' : 'พิมพ์โรมาจิ'}`;
+    },
+
+    updateScore() {
+        document.querySelector('.score-badge').textContent = `${this.state.quizScore}/${this.state.quizTotal}`;
+    },
+
+    playSound(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.8; // Slightly slower for learning
+            window.speechSynthesis.speak(utterance);
+        } else {
+            console.log('Text-to-speech not supported');
+        }
+    }
+};
+
+// Expose app to window globally so inline HTML handlers can access it
+window.app = app;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
