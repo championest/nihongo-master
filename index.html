@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nihongo Master - เรียนภาษาญี่ปุ่น</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="background-decor"></div>
+
+    <nav class="navbar glass">
+        <div class="logo">
+            <i class="fa-solid fa-torii-gate"></i> Nihongo<span>Master</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-target="home">หน้าแรก</button>
+            <button class="nav-btn" data-target="learn">บทเรียน</button>
+            <button class="nav-btn" data-target="flashcard">Flashcards</button>
+            <button class="nav-btn" data-target="quiz">แบบทดสอบ</button>
+        </div>
+    </nav>
+
+    <main class="container">
+
+        <!-- Homepage View -->
+        <section id="home-view" class="view active">
+            <div class="hero">
+                <div class="hero-content">
+                    <span class="badge">เริ่มจากศูนย์</span>
+                    <h1>เชี่ยวชาญภาษาญี่ปุ่น:<br>ฮิรางานะ คาตาคานะ และคันจิ</h1>
+                    <p>แพลตฟอร์มการเรียนรู้ที่ออกแบบมาเพื่อผู้เริ่มต้น เข้าใจง่าย สนุก และได้ผลจริง</p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <i class="fa-solid fa-fire"></i>
+                            <span>เรียนต่อเนื่อง 0 วัน</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fa-solid fa-star"></i>
+                            <span>0 คะแนน</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <!-- Decorative Japanese Character Art -->
+                    <div class="floating-char char-1">あ</div>
+                    <div class="floating-char char-2">ア</div>
+                    <div class="floating-char char-3">日</div>
+                </div>
+            </div>
+
+            <div class="course-cards">
+                <div class="card glass">
+                    <div class="card-content" onclick="app.navigateTo('learn', 'hiragana')">
+                        <div class="card-icon color-blue"><i class="fa-solid fa-a"></i></div>
+                        <h3>เริ่ม ฮิรางานะ</h3>
+                        <p>ตัวอักษรพื้นฐาน 46 ตัวที่ต้องรู้</p>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-outline"
+                            onclick="event.stopPropagation(); app.navigateTo('flashcard', 'hiragana')">
+                            <i class="fa-solid fa-layer-group"></i> ฝึก Flashcard
+                        </button>
+                    </div>
+                </div>
+                <div class="card glass">
+                    <div class="card-content" onclick="app.navigateTo('learn', 'katakana')">
+                        <div class="card-icon color-green"><i class="fa-solid fa-k"></i></div>
+                        <h3>เริ่ม คาตาคานะ</h3>
+                        <p>สำหรับคำทับศัพท์และคำต่างประเทศ</p>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-outline"
+                            onclick="event.stopPropagation(); app.navigateTo('flashcard', 'katakana')">
+                            <i class="fa-solid fa-layer-group"></i> ฝึก Flashcard
+                        </button>
+                    </div>
+                </div>
+                <div class="card glass">
+                    <div class="card-content" onclick="app.navigateTo('learn', 'kanji')">
+                        <div class="card-icon color-red"><i class="fa-solid fa-book"></i></div>
+                        <h3>เริ่ม คันจิ (N5)</h3>
+                        <p>ตัวอักษรจีนและความหมายพื้นฐาน</p>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-outline"
+                            onclick="event.stopPropagation(); app.navigateTo('flashcard', 'kanji')">
+                            <i class="fa-solid fa-layer-group"></i> ฝึก Flashcard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learning Module View (Hiragana) -->
+        <section id="learn-view" class="view">
+            <header class="section-header">
+                <div>
+                    <button class="back-btn" onclick="app.navigateTo('home')"><i class="fa-solid fa-arrow-left"></i>
+                        กลับ</button>
+                    <h2>ตารางฮิรางานะ (Hiragana)</h2>
+                </div>
+                <div class="module-tabs">
+                    <button class="tab-btn active">Seion (พื้นฐาน)</button>
+                    <button class="tab-btn">Dakuon (ขุ่น)</button>
+                    <button class="tab-btn">Yōon (ควบ)</button>
+                </div>
+            </header>
+
+            <div class="kana-grid" id="kana-grid">
+                <!-- Grid items will be injected by JS -->
+                <!-- Example Item -->
+                <div class="kana-box glass">
+                    <div class="kana-char">あ</div>
+                    <div class="kana-romaji">a</div>
+                    <div class="kana-actions">
+                        <button class="icon-btn" title="ฟังเสียง"><i class="fa-solid fa-volume-high"></i></button>
+                        <button class="icon-btn" title="ลำดับขีด"><i class="fa-solid fa-pencil"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Flashcard View -->
+        <section id="flashcard-view" class="view">
+            <header class="section-header">
+                <h2>ฝึกฝน Flashcard</h2>
+                <div class="settings">
+                    <span class="badge" id="fc-category-badge">Hiragana</span>
+                </div>
+            </header>
+
+            <!-- Setup Screen -->
+            <div id="flashcard-setup" class="setup-container">
+                <div class="setup-header">
+                    <p>เลือกตัวอักษรที่ต้องการฝึก:</p>
+                    <div class="setup-actions">
+                        <button class="btn-text" id="fc-select-all">เลือกทั้งหมด</button>
+                        <button class="btn-text" id="fc-clear-all">ล้าง</button>
+                    </div>
+                </div>
+                <div class="selection-grid" id="fc-selection-grid">
+                    <!-- Items injected by JS -->
+                </div>
+                <div class="start-action">
+                    <button class="btn btn-primary btn-lg" id="fc-start-btn">เริ่มฝึกฝน <i
+                            class="fa-solid fa-play"></i></button>
+                </div>
+            </div>
+
+            <!-- Play Screen -->
+            <div id="flashcard-play" class="play-container hidden">
+                <div class="game-stats">
+                    <div class="stat-pill"><i class="fa-solid fa-check"></i> <span id="fc-score">0</span></div>
+                    <div class="stat-pill"><i class="fa-solid fa-layer-group"></i> <span id="fc-remaining">0</span>
+                    </div>
+                </div>
+
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard">
+                        <div class="card-front glass">
+                            <button class="audio-btn-floating" id="fc-audio-btn"><i
+                                    class="fa-solid fa-volume-high"></i></button>
+                            <span class="fc-char">さ</span>
+                            <span class="fc-hint">กดเพื่อดูคำตอบ</span>
+                        </div>
+                        <div class="card-back glass">
+                            <span class="fc-romaji">sa</span>
+                            <span class="fc-type">Hiragana</span>
+                        </div>
+                    </div>
+
+                    <div class="flashcard-controls">
+                        <button class="btn btn-outline" id="show-answer-btn">แสดงคำตอบ</button>
+                        <div class="rating-btns hidden" id="rating-btns">
+                            <button class="btn btn-danger" id="fc-wrong">ฝึกเพิ่ม <i
+                                    class="fa-solid fa-rotate-left"></i></button>
+                            <button class="btn btn-success" id="fc-correct">จำได้แล้ว! <i
+                                    class="fa-solid fa-check"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-text stop-btn" id="fc-quit-btn">เลิกทำ</button>
+            </div>
+        </section>
+
+        <!-- Quiz View -->
+        <section id="quiz-view" class="view">
+            <div class="quiz-wrapper glass">
+                <header class="quiz-header">
+                    <h2>แบบทดสอบ: การพิมพ์โรมาจิ</h2>
+                    <div class="score-badge">5/10</div>
+                </header>
+
+                <div class="quiz-content">
+                    <div class="question-char">む</div>
+                    <div class="input-area">
+                        <input type="text" class="glass-input large-input" placeholder="พิมพ์คำตอบโรมาจิ..." autofocus>
+                        <button class="btn btn-primary">ส่งคำตอบ</button>
+                    </div>
+                </div>
+
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="fill" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
