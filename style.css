@@ -976,6 +976,13 @@ h1 {
     font-weight: bold;
 }
 
+.mini-card.wrong {
+    background: rgba(255, 100, 100, 0.2);
+    color: #d32f2f;
+    border-color: #d32f2f;
+    font-weight: bold;
+}
+
 /* Remove the hover effect and overlap for cleaner text-like look */
 .stack-content .mini-card:not(:first-child) {
     margin-top: 0;

@@ -52,6 +52,7 @@ const app = {
         score: 0,
         history: [],
         rememberedCards: [],
+        wrongCards: [], // Track cards marked as "need more practice"
         quizScore: 0,
         quizTotal: 0,
         currentQuizItem: null
@@ -247,6 +248,7 @@ const app = {
         this.state.score = 0;
         this.state.history = []; // Stack for undo
         this.state.rememberedCards = []; // Right stack
+        this.state.wrongCards = []; // Track wrong answers
 
         // Switch View
         document.getElementById('flashcard-setup').classList.add('hidden');
@@ -268,9 +270,18 @@ const app = {
         if (result === 'correct') {
             this.state.score++;
             this.state.rememberedCards.push(currentCard);
+            // Remove from wrongCards if it was there
+            const wrongIndex = this.state.wrongCards.findIndex(c => c.char === currentCard.char);
+            if (wrongIndex !== -1) {
+                this.state.wrongCards.splice(wrongIndex, 1);
+            }
         } else {
-            // Re-queue the card
+            // Re-queue the card and mark as wrong
             this.state.flashcardQueue.push(currentCard);
+            // Add to wrongCards if not already there
+            if (!this.state.wrongCards.find(c => c.char === currentCard.char)) {
+                this.state.wrongCards.push(currentCard);
+            }
         }
 
         this.nextFlashcard();
@@ -298,9 +309,12 @@ const app = {
             this.state.rememberedCards.pop();
         } else {
             // It was wrong, so it was pushed to the end of queue. Remove it from there.
-            // Note: If we shuffled, this might be tricky, but here we just pushed to end.
-            // However, if we undo immediately, it's at the end.
             this.state.flashcardQueue.pop();
+            // Remove from wrongCards
+            const wrongIndex = this.state.wrongCards.findIndex(c => c.char === card.char);
+            if (wrongIndex !== -1) {
+                this.state.wrongCards.splice(wrongIndex, 1);
+            }
         }
 
         this.renderCurrentFlashcard();
@@ -323,34 +337,39 @@ const app = {
     },
 
     renderCurrentFlashcard() {
-        // Reset UI
-        // Reset UI
         const flashcard = document.getElementById('flashcard');
         const showBtn = document.getElementById('show-answer-btn');
         const ratingBtns = document.getElementById('rating-btns');
         const item = this.state.currentFlashcard;
 
-        // Ensure card is face-down
+        // Force remove flip first to reset animation
         flashcard.classList.remove('flipped');
-        showBtn.classList.remove('hidden');
-        ratingBtns.classList.add('hidden');
+
+        // Use setTimeout to ensure DOM updates before showing new content
+        setTimeout(() => {
+            // Update front side content
+            document.querySelector('.fc-char').textContent = item.char;
+
+            // Update back side content
+            const romajiEl = document.querySelector('.fc-romaji');
+            const typeEl = document.querySelector('.fc-type');
+            if (item.meaning) {
+                romajiEl.textContent = item.meaning;
+                typeEl.textContent = `Reading: ${item.romaji}`;
+            } else {
+                romajiEl.textContent = item.romaji;
+                typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
+            }
+
+            // Show controls
+            showBtn.classList.remove('hidden');
+            ratingBtns.classList.add('hidden');
+        }, 50);
 
         // Update Stats
         document.getElementById('fc-score').textContent = this.state.score;
         // Update Undo button state
         document.getElementById('fc-undo-btn').disabled = this.state.history.length === 0;
-
-        // Update Content
-        document.querySelector('.fc-char').textContent = item.char;
-        const romajiEl = document.querySelector('.fc-romaji');
-        const typeEl = document.querySelector('.fc-type');
-        if (item.meaning) {
-            romajiEl.textContent = item.meaning;
-            typeEl.textContent = `Reading: ${item.romaji}`;
-        } else {
-            romajiEl.textContent = item.romaji;
-            typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
-        }
     },
 
     updateStacks() {
@@ -364,9 +383,12 @@ const app = {
         // Render pending chips (limit to 50)
         const showCountLeft = Math.min(leftCount, 50);
         for (let i = 0; i < showCountLeft; i++) {
+            const card = this.state.flashcardQueue[i];
             const div = document.createElement('div');
-            div.className = 'mini-card pending';
-            div.textContent = this.state.flashcardQueue[i].char;
+            // Check if this card is in wrongCards (needs more practice)
+            const isWrong = this.state.wrongCards.find(c => c.char === card.char);
+            div.className = isWrong ? 'mini-card pending wrong' : 'mini-card pending';
+            div.textContent = card.char;
             leftContainer.appendChild(div);
         }
 
