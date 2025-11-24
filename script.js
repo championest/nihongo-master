@@ -167,19 +167,23 @@ const app = {
         const audioBtn = document.getElementById('fc-audio-btn');
         const undoBtn = document.getElementById('fc-undo-btn');
 
+        // Click on card to flip (if not already flipped)
+        flashcard.addEventListener('click', () => {
+            if (!flashcard.classList.contains('flipped')) {
+                flashcard.classList.add('flipped');
+                showBtn.classList.add('hidden');
+                ratingBtns.classList.remove('hidden');
+            }
+        });
+
         showBtn.addEventListener('click', () => {
             flashcard.classList.add('flipped');
             showBtn.classList.add('hidden');
             ratingBtns.classList.remove('hidden');
         });
 
-        document.getElementById('fc-correct').addEventListener('click', () => {
-            this.processCardResult('correct');
-        });
-
-        document.getElementById('fc-wrong').addEventListener('click', () => {
-            this.processCardResult('wrong');
-        });
+        document.getElementById('fc-correct').addEventListener('click', () => this.processCardResult('correct'));
+        document.getElementById('fc-wrong').addEventListener('click', () => this.processCardResult('wrong'));
 
         audioBtn.addEventListener('click', (e) => {
             e.stopPropagation(); // Prevent card flip if clicking audio
@@ -320,27 +324,26 @@ const app = {
 
     renderCurrentFlashcard() {
         // Reset UI
+        // Reset UI
         const flashcard = document.getElementById('flashcard');
         const showBtn = document.getElementById('show-answer-btn');
         const ratingBtns = document.getElementById('rating-btns');
         const item = this.state.currentFlashcard;
 
+        // Ensure card is face-down
         flashcard.classList.remove('flipped');
         showBtn.classList.remove('hidden');
         ratingBtns.classList.add('hidden');
 
         // Update Stats
         document.getElementById('fc-score').textContent = this.state.score;
-
-        // Update Undo Button State
+        // Update Undo button state
         document.getElementById('fc-undo-btn').disabled = this.state.history.length === 0;
 
         // Update Content
         document.querySelector('.fc-char').textContent = item.char;
-
         const romajiEl = document.querySelector('.fc-romaji');
         const typeEl = document.querySelector('.fc-type');
-
         if (item.meaning) {
             romajiEl.textContent = item.meaning;
             typeEl.textContent = `Reading: ${item.romaji}`;
