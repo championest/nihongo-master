@@ -109,22 +109,32 @@ const app = {
     },
 
     getData(category) {
-        if (category === 'katakana') return katakanaData;
-        if (category === 'kanji') return kanjiData;
-        return hiraganaData;
+        const withType = (data, type) => data.map(item => ({ ...item, type }));
+
+        if (category === 'katakana') return withType(katakanaData, 'Katakana');
+        if (category === 'kanji') return withType(kanjiData, 'Kanji');
+        if (category === 'mixed') {
+            return [
+                ...withType(hiraganaData, 'Hiragana'),
+                ...withType(katakanaData, 'Katakana'),
+                ...withType(kanjiData, 'Kanji')
+            ];
+        }
+        return withType(hiraganaData, 'Hiragana');
     },
 
     updateLearnHeader() {
         const titleMap = {
             'hiragana': 'ตารางฮิรางานะ (Hiragana)',
             'katakana': 'ตารางคาตาคานะ (Katakana)',
-            'kanji': 'คันจิพื้นฐาน N5 (Kanji)'
+            'kanji': 'คันจิพื้นฐาน N5 (Kanji)',
+            'mixed': 'รวมมิตร (Mixed)'
         };
         document.querySelector('#learn-view h2').textContent = titleMap[this.state.currentCategory];
 
-        // Hide tabs for Kanji
+        // Hide tabs for Kanji or Mixed
         const tabs = document.querySelector('.module-tabs');
-        if (this.state.currentCategory === 'kanji') {
+        if (this.state.currentCategory === 'kanji' || this.state.currentCategory === 'mixed') {
             tabs.style.display = 'none';
         } else {
             tabs.style.display = 'flex';
@@ -270,11 +280,7 @@ const app = {
         if (result === 'correct') {
             this.state.score++;
             this.state.rememberedCards.push(currentCard);
-            // Remove from wrongCards if it was there
-            const wrongIndex = this.state.wrongCards.findIndex(c => c.char === currentCard.char);
-            if (wrongIndex !== -1) {
-                this.state.wrongCards.splice(wrongIndex, 1);
-            }
+            // We keep it in wrongCards (if it's there) so we can review it later
         } else {
             // Re-queue the card and mark as wrong
             this.state.flashcardQueue.push(currentCard);
@@ -310,7 +316,10 @@ const app = {
         } else {
             // It was wrong, so it was pushed to the end of queue. Remove it from there.
             this.state.flashcardQueue.pop();
-            // Remove from wrongCards
+            // Remove from wrongCards ONLY if it was added in this specific action?
+            // Complex to track, but for now simple removal is acceptable or we can leave it.
+            // If we leave it, undoing a wrong answer leaves it in "Review List".
+            // Let's remove it to be safe, assuming user corrected themselves immediately.
             const wrongIndex = this.state.wrongCards.findIndex(c => c.char === card.char);
             if (wrongIndex !== -1) {
                 this.state.wrongCards.splice(wrongIndex, 1);
@@ -324,6 +333,25 @@ const app = {
     nextFlashcard() {
         // Check if queue empty
         if (this.state.flashcardQueue.length === 0) {
+            if (this.state.wrongCards.length > 0) {
+                const doReview = confirm(`จบการฝึกฝน! คะแนนของคุณ: ${this.state.score}\nคุณมีคำที่ตอบผิด ${this.state.wrongCards.length} คำ ต้องการฝึกซ้ำเฉพาะคำเหล่านี้ไหม?`);
+                if (doReview) {
+                    // Restart with wrong cards
+                    this.state.flashcardQueue = [...this.state.wrongCards];
+                    this.state.flashcardQueue.sort(() => Math.random() - 0.5); // Shuffle
+
+                    // Reset states for new round
+                    this.state.wrongCards = [];
+                    this.state.score = 0;
+                    this.state.history = [];
+                    this.state.rememberedCards = [];
+
+                    this.updateStacks();
+                    this.nextFlashcard();
+                    return;
+                }
+            }
+
             alert(`จบการฝึกฝน! คะแนนของคุณ: ${this.state.score}`);
             this.resetFlashcardSetup();
             return;
@@ -351,12 +379,13 @@ const app = {
         // Update back side content
         const romajiEl = document.querySelector('.fc-romaji');
         const typeEl = document.querySelector('.fc-type');
+
         if (item.meaning) {
             romajiEl.textContent = item.meaning;
-            typeEl.textContent = `Reading: ${item.romaji}`;
+            typeEl.textContent = `${item.type} (Reading: ${item.romaji})`;
         } else {
             romajiEl.textContent = item.romaji;
-            typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
+            typeEl.textContent = item.type || this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
         }
 
         // Show controls

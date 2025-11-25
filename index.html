@@ -108,6 +108,23 @@
                         </button>
                     </div>
                 </div>
+                <div class="card glass">
+                    <div class="card-content" onclick="app.navigateTo('flashcard', 'mixed')">
+                        <div class="card-icon" style="background: linear-gradient(135deg, #9C27B0, #673AB7);"><i
+                                class="fa-solid fa-shuffle"></i></div>
+                        <h3>รวมมิตร (Mixed)</h3>
+                        <p>ทบทวนทุกอย่างพร้อมกัน</p>
+                        <div class="progress-bar">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-outline"
+                            onclick="event.stopPropagation(); app.navigateTo('flashcard', 'mixed')">
+                            <i class="fa-solid fa-layer-group"></i> ฝึก Flashcard
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
 
