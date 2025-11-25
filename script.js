@@ -345,26 +345,23 @@ const app = {
         // Force remove flip first to reset animation
         flashcard.classList.remove('flipped');
 
-        // Use setTimeout to ensure DOM updates before showing new content
-        setTimeout(() => {
-            // Update front side content
-            document.querySelector('.fc-char').textContent = item.char;
+        // Update front side content
+        document.querySelector('.fc-char').textContent = item.char;
 
-            // Update back side content
-            const romajiEl = document.querySelector('.fc-romaji');
-            const typeEl = document.querySelector('.fc-type');
-            if (item.meaning) {
-                romajiEl.textContent = item.meaning;
-                typeEl.textContent = `Reading: ${item.romaji}`;
-            } else {
-                romajiEl.textContent = item.romaji;
-                typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
-            }
+        // Update back side content
+        const romajiEl = document.querySelector('.fc-romaji');
+        const typeEl = document.querySelector('.fc-type');
+        if (item.meaning) {
+            romajiEl.textContent = item.meaning;
+            typeEl.textContent = `Reading: ${item.romaji}`;
+        } else {
+            romajiEl.textContent = item.romaji;
+            typeEl.textContent = this.state.currentCategory.charAt(0).toUpperCase() + this.state.currentCategory.slice(1);
+        }
 
-            // Show controls
-            showBtn.classList.remove('hidden');
-            ratingBtns.classList.add('hidden');
-        }, 50);
+        // Show controls
+        showBtn.classList.remove('hidden');
+        ratingBtns.classList.add('hidden');
 
         // Update Stats
         document.getElementById('fc-score').textContent = this.state.score;
